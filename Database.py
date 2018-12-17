@@ -1,4 +1,5 @@
 import sqlite3
+import turicreate as tc
 
 #this should be refactored :)
 
@@ -17,3 +18,6 @@ class Database( object ):
         if( Database.instance is None ):
             Database.instance = sqlite3.connect( DATABASE_PATH )
         return Database.instance
+
+    def turicreate_get_ratings():
+        return tc.SFrame.create( Database.instance , "SELECT * FROM rating" );

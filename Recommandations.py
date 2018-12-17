@@ -9,9 +9,7 @@ class Recommendations( object ):
 
 
     def _load_tc_dataset( self ):
-
-        link = sqlite3.connect( "./database/db.sqlite3" )
-        self.dataset = tc.SFrame.from_sql( link , "SELECT * FROM rating" )
+        self.dataset = Database.turicreate_get_ratings();
 
 
 class MatrixFactorization( Recommendations ):
@@ -48,8 +46,8 @@ class ContentBased( Recommendations ):
         self._load_tc_dataset();
 
         model = tc.item_content_recommender.create( self.dataset ,
-                                                    user_id='userId',
-                                                    item_id='movieId',
+                                                    user_id=Database.user_col_name,
+                                                    item_id=Database.item_col_name,
                                                     );
 
         return model.recommend_from_iteractions([0]);
