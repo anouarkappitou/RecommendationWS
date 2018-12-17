@@ -3,21 +3,37 @@ import turicreate as tc
 
 #this should be refactored :)
 
-DATABSE_PATH = "./database/db.sqlite3"
+DATABASE_PATH = "./database/db.sqlite3"
 
-class Database( object ):
+class Database:
+    # Here will be the instance stored.
+    __instance = None
 
-    instance = None
 
     user_col_name = "userId"
     item_col_name = "movieId"
     target_col_name = "rating"
 
-    def instance():
+    @staticmethod
+    def getInstance():
+        """ Static access method. """
+        if Database.__instance == None:
+            Database()
+        return Database.__instance 
 
-        if( Database.instance is None ):
-            Database.instance = sqlite3.connect( DATABASE_PATH )
-        return Database.instance
+    def __init__(self):
 
-    def turicreate_get_ratings():
-        return tc.SFrame.create( Database.instance , "SELECT * FROM rating" );
+        """ Virtually private constructor. """
+        if Database.__instance != None:
+            raise Exception("This class is a singleton!")
+        else:
+            Database.__instance = self
+            self.__connect();
+
+
+    def __connect( self ):
+        self.__db_instance = sqlite3.connect( DATABASE_PATH )
+
+    def turicreate_get_ratings(self):
+        return tc.SFrame.from_sql( self.__db_instance , "SELECT * FROM rating");
+

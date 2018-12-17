@@ -11,6 +11,6 @@ class RecommendationFactory( object ):
             "MatrixFactorization": MatrixFactorization
         }
 
-        ctor = algorithms.get( algorithm_name , lambda: "invalide arg" );
+        ctor = algorithms.get( algorithm_name , lambda: False );
 
         return ctor();

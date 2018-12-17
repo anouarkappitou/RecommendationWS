@@ -1,6 +1,5 @@
 from Database import *;
 import turicreate as tc
-import sqlite3
 
 class Recommendations( object ):
 
@@ -9,7 +8,10 @@ class Recommendations( object ):
 
 
     def _load_tc_dataset( self ):
-        self.dataset = Database.turicreate_get_ratings();
+        self.dataset = Database.getInstance().turicreate_get_ratings();
+
+
+    
 
 
 class MatrixFactorization( Recommendations ):
@@ -23,8 +25,7 @@ class MatrixFactorization( Recommendations ):
                                                              user_id=Database.user_col_name ,
                                                              item_id=Database.item_col_name ,
                                                              target=Database.target_col_name );
-
-        return model.recommend()
+        return model.recommend( k=num )
 
 class ItemSimilarity( Recommendations ):
 
@@ -36,7 +37,7 @@ class ItemSimilarity( Recommendations ):
                                                        user_id=Database.user_col_name ,
                                                        item_id=Database.item_col_name  );
 
-        return model.recommend();
+        return model.recommend( k=num )
 
 
 class ContentBased( Recommendations ):
@@ -50,7 +51,7 @@ class ContentBased( Recommendations ):
                                                     item_id=Database.item_col_name,
                                                     );
 
-        return model.recommend_from_iteractions([0]);
+        return model.recommend_from_iteractions([0] , k=num );
 
 
 class PopularityBased( Recommendations ):
@@ -64,4 +65,4 @@ class PopularityBased( Recommendations ):
                                                 item_id=Database.item_col_name ,
                                                 target=Database.target_col_name );
 
-        return model.recommend();
+        return model.recommend( k=num )

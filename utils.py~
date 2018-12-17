@@ -1,0 +1,6 @@
+import json
+
+
+def create_json_from_dict( dictionary ):
+    #heuh wrap it baby 
+    return json.dump( dictionary );

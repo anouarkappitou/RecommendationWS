@@ -1,6 +1,8 @@
 from flask import Flask
 from flask import request
 from RecommandationFactory import *
+from SFrameFormatter import *
+from utils import *
 
 app = Flask( __name__ );
 
@@ -9,6 +11,12 @@ def recommand( algorithm , user_id , num_of_recommendations ):
 
     algo_instance = RecommendationFactory.create( algorithm );
 
-    return algo_instance.recommand( user_id , num_of_recommendations );
+    if( algo_instance is False ):
+        response = create_notfound_json_response( message="algorithm not found" )
+    else:
+        formater = SFrameFormatter( algo_instance.recommand( user_id , num_of_recommendations ) );
+        response = Response( response=formater.to_json(),
+                            status=200,
+                            mimetype="application/json" )
 
-    #jsonify the recommandations
+    return response;
