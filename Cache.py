@@ -9,7 +9,7 @@ class Cache( object ):
         if Cache.__instance is not None:
             return Cache.__instance
         Cache.__instance = object.__new__(cls)
-        Cache.__instance.db = sqlite3.connect("cache.db")
+        Cache.__instance.db = sqlite3.connect(":memory:")
         return Cache.__instance
 
     def __init__( self , cache_time ):
