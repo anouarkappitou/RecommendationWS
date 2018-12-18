@@ -2,7 +2,7 @@ from flask import Flask
 from flask import request
 from RecommandationFactory import *
 from SFrameFormatter import *
-from utils import *
+from Utils import *
 
 app = Flask( __name__ );
 
