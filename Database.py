@@ -30,10 +30,9 @@ class Database:
             Database.__instance = self
             self.__connect();
 
-
     def __connect( self ):
         self.__db_instance = sqlite3.connect( DATABASE_PATH )
 
     def turicreate_get_ratings(self):
-        return tc.SFrame.from_sql( self.__db_instance , "SELECT * FROM rating");
+        return tc.SFrame.from_sql( self.__db_instance , "SELECT * FROM ratings");
 

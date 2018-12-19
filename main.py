@@ -14,7 +14,8 @@ def recommand( algorithm , user_id , num_of_recommendations ):
     if( algo_instance is False ):
         response = create_notfound_json_response( message="algorithm not found" )
     else:
-        formater = SFrameFormatter( algo_instance.recommand( user_id , num_of_recommendations ) );
+        items_id = [user_id]
+        formater = SFrameFormatter( algo_instance.recommand( items_id , num_of_recommendations ) );
         response = Response( response=formater.to_json(),
                             status=200,
                             mimetype="application/json" )

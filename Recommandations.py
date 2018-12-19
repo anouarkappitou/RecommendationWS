@@ -8,29 +8,35 @@ class Recommendations( object ):
 
     def __init__( self ):
         self.model = None
+        self.cached = False;
 
-    def recommand( self , user_id , num= 10 ):
+    def recommand( self , users_id = [] , num= 10 ):
 
         self._load_tc_dataset();
 
         self.load_model()
 
-        return self.model.recommend( k=num )
+        return self.model.recommend( users_id )
+
+
+    def is_cached( self ):
+        return self.cached
+
+
+    def set_cachable( self , cachable ):
+        self.cached = cachable;
 
 
     def load_model( self ):
 
-         if self.model is None:
+        loader = None
 
-            model_name = self._model_name()
+        if self.is_cached():
+            loader = CachedModel()
+        else:
+            loader = PermanentModel()
 
-            model_path = "./models/%s" % model_name
-
-            if not file_exists( model_path ):
-                self.train()
-                self.model.save( model_path )
-            else:
-                self.model = tc.load_model( model_path );
+        self.model = loader.load_model( self.model , self._model_name() , self.train )
 
     def _model_name( self ):
         raise Exception( "not implemented" )
@@ -42,15 +48,37 @@ class Recommendations( object ):
         raise Exception( "Not Implemented" );
 
 
-class CachedModelRecommendations( Recommendations ):
+class StoredModel( object ):
+
+    def load_model( self , model , model_name , train ):
+        raise Exception( "not implemented" );
+
+class PermanentModel( StoredModel ):
+
+    def load_model( self , model , model_name , train ):
+
+         if model is None:
+
+            model_path = "./models/%s" % model_name
+
+            if not file_exists( model_path ):
+
+                model = train()
+                model.save( model_path )
+            else:
+                model = tc.load_model( model_path );
+
+            return model
+
+
+
+class CachedModel( StoredModel ):
 
     VALID_CACHE_TIME = 36000 # 10 HOURS
 
-    def load_model( self ):
+    def load_model( self , model , model_name , train ):
 
         if self.model is None:
-
-            model_name = self._model_name()
 
             cache = Cache( CachedModelRecommendations.VALID_CACHE_TIME )
 
@@ -58,39 +86,54 @@ class CachedModelRecommendations( Recommendations ):
 
             if model_path is False:
 
-                self.train()
+                model = train()
 
                 epoch = int( time.time() )
 
                 trained_model_path = "./models/%s/%s" % ( epoch , model_name )
 
-                self.model.save( trained_model_path )
+                model.save( trained_model_path )
 
                 cache.save_cached_model_path( trained_model_path )
             else:
-                self.model = tc.load_model( model_path );
+                model = tc.load_model( model_path );
+
+            return model
 
 
-class MatrixFactorization( CachedModelRecommendations ):
+class MatrixFactorization( Recommendations ):
 
     def _model_name( self ):
         return "MatrixFactorization"
 
     def train( self ):
-        self.model = tc.ranking_factorization_recommender.create( self.dataset ,
-                                                             user_id=Database.user_col_name ,
-                                                             item_id=Database.item_col_name );
+        return tc.ranking_factorization_recommender.create( self.dataset ,
+                                                            user_id=Database.user_col_name ,
+                                                            target=Database.target_col_name,
+                                                            item_id=Database.item_col_name );
 
 
-class ItemSimilarity( CachedModelRecommendations ):
+# this model rank an item according to its similarity to other items
+# observed for the user in question
+
+class ItemSimilarity( Recommendations ):
 
     def _model_name( self ):
         return "ItemSimilarity"
 
     def train( self ):
-        self.model = tc.item_similarity_recommender.create( self.dataset ,
+        return tc.item_similarity_recommender.create( self.dataset ,
                                                             user_id=Database.user_col_name,
+                                                            target=Database.target_col_name,
                                                             item_id=Database.item_col_name  );
+    def recommand( self , items_id = [] , num= 10 ):
+
+        self._load_tc_dataset();
+
+        self.load_model()
+
+        return self.model.recommend_from_interactions( items_id , k=num )
+
 
 
 class ContentBased( Recommendations ):
@@ -99,17 +142,19 @@ class ContentBased( Recommendations ):
         return "ContentBased"
 
     def train( self ):
-        self.model = tc.item_content_recommender.create( self.dataset ,
+
+        return tc.item_content_recommender.create( self.dataset ,
                                                     user_id=Database.user_col_name,
-                                                    item_id=Database.item_col_name,
-                                                    );
-    def recommand( self , user_id , num=10 ):
+                                                    target=Database.target_col_name,
+                                                    item_id=Database.item_col_name,);
+
+    def recommand( self , users_id = [] , num=10 ):
 
         self._load_tc_dataset();
 
         self.load_model()
 
-        return self.model.recommend_from_iteractions([0] , k=num );
+        return self.model.recommend_from_iteractions( users_id , k=num );
 
 
 class PopularityBased( Recommendations ):
@@ -118,7 +163,8 @@ class PopularityBased( Recommendations ):
         return "PopularityBased"
 
     def train( self ):
-         self.model = tc.popularity_recommender.create( self.dataset ,
+         return tc.popularity_recommender.create( self.dataset ,
                                                 user_id=Database.user_col_name ,
                                                 item_id=Database.item_col_name ,
                                                 target=Database.target_col_name )
+
