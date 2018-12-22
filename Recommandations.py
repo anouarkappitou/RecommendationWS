@@ -3,6 +3,10 @@ import turicreate as tc
 from Utils import file_exists
 from Cache import *
 import time
+        
+from sklearn.cluster import KMeans
+from scipy.sparse import dok_matrix, csr_matrix
+import numpy as np
 
 class Recommendations( object ):
 
@@ -168,3 +172,41 @@ class PopularityBased( Recommendations ):
                                                 item_id=Database.item_col_name ,
                                                 target=Database.target_col_name )
 
+
+class KMean( Recommendations ):
+
+    def __model_name( self ):
+        return "K-MeansClustering"
+
+    def _load_dataset( self ):
+
+        ratings = Database.getInstance().ratings();
+
+        users  = filter( lambda x: int( x[0] ) , ratings );
+        movies = filter( lambda x: int( x[1] ), ratings );
+
+        n_users = len( list( users ) )
+
+        rating_matrix = dok_matrix( ( max( users ) , max(movies)  ) , dtype=np.float32 )
+
+        for user in users:
+
+            user_ratings = filter( lambda x: x[0] == user  , ratings )
+
+            for user_rating in user_ratings:
+
+                rating_matrix[ user , int( user_rating[1] ) ] = user_rating[2];
+
+        #k = int( ( len(users) / 10 ) + 2 )
+
+    def load_model( self ):
+        self.train();
+
+    def train( self ):
+        kmean = KMeans( n_clusters=150 );
+        self.model = kmean.fit( rating_matrix.tocsr() )
+
+    def recommand( self , users_id = [] , num = 10 ):
+        self._load_dataset();
+        self.train();
+        print( self.model )

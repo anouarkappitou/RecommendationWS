@@ -10,5 +10,5 @@ class SFrameFormatter( object ):
 
         recommendations = self.recommendations;
 
-        return json.dumps({"movieId": list(recommendations["movieId"]), "score": list(recommendations["score"])})
+        return json.dumps({"movies": list(recommendations["movieId"]), "score": list(recommendations["score"])})
 

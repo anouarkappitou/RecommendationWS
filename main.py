@@ -11,6 +11,10 @@ def recommand( algorithm , user_id , num_of_recommendations ):
 
     algo_instance = RecommendationFactory.create( algorithm );
 
+    algo_instance.recommand();
+
+    return;
+
     if( algo_instance is False ):
         response = create_notfound_json_response( message="algorithm not found" )
     else:

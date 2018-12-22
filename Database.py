@@ -36,3 +36,22 @@ class Database:
     def turicreate_get_ratings(self):
         return tc.SFrame.from_sql( self.__db_instance , "SELECT * FROM ratings");
 
+    def all_users( self ):
+
+        crsr = self.__db_instance.cursor();
+
+        crsr.execute( "SELECT id FROM users");
+
+        result = crsr.fetchall();
+
+        return result;
+
+    def ratings( self ):
+
+        crsr = self.__db_instance.cursor();
+
+        crsr.execute( "SELECT * FROM ratings");
+
+        result = crsr.fetchall();
+
+        return result;

@@ -8,7 +8,8 @@ class RecommendationFactory( object ):
         algorithms = {
             "ItemSimilarity":  ItemSimilarity,
             "ContentBased" : ContentBased,
-            "MatrixFactorization": MatrixFactorization
+            "MatrixFactorization": MatrixFactorization,
+            "KMean": KMean
         }
 
         ctor = algorithms.get( algorithm_name , lambda: False );
