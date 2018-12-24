@@ -7,6 +7,8 @@ import time
 from sklearn.cluster import KMeans
 from scipy.sparse import dok_matrix, csr_matrix
 import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
 
 class Recommendations( object ):
 
@@ -182,8 +184,8 @@ class KMean( Recommendations ):
 
         ratings = Database.getInstance().ratings();
 
-        users  = filter( lambda x: int( x[0] ) , ratings );
-        movies = filter( lambda x: int( x[1] ), ratings );
+        users = list( set([ int( x[0] ) for x in ratings ]) )
+        movies = list( set ( [ int( x[1] ) for x in ratings ] ) )
 
         n_users = len( list( users ) )
 
@@ -191,22 +193,26 @@ class KMean( Recommendations ):
 
         for user in users:
 
-            user_ratings = filter( lambda x: x[0] == user  , ratings )
+            user_ratings = [x for x in ratings if user is int(x[0]) ]#filter( lambda x: x[0] == user  , ratings )
 
             for user_rating in user_ratings:
 
-                rating_matrix[ user , int( user_rating[1] ) ] = user_rating[2];
+                rating_matrix[ user , int( user_rating[1] ) ] = int(user_rating[2]);
 
-        #k = int( ( len(users) / 10 ) + 2 )
+        self.k = int( ( n_users / 10 ) + 2 )
+
+        self.rating_matrix = rating_matrix
 
     def load_model( self ):
         self.train();
 
     def train( self ):
-        kmean = KMeans( n_clusters=150 );
-        self.model = kmean.fit( rating_matrix.tocsr() )
+        self.model = KMeans( n_clusters=self.k );
+        self.model.fit( self.rating_matrix.tocsr() )
+        print( self.model.labels_ )
+
 
     def recommand( self , users_id = [] , num = 10 ):
         self._load_dataset();
         self.train();
-        print( self.model )
+        print( self.model.labels_ )
